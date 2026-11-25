@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>QR Studio — Tạo mã QR theo cách của bạn</title>
+<style>
+:root{--bg:#f5f6fb;--card:#fff;--ink:#14162b;--mute:#62668a;--line:#e2e4f0;--acc:#5b4bf0;--on:#fff;--soft:#eeecff;--warn:#8a4b00;--wbg:#fff3d6;--ok:#17693a;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1020;--card:#171a30;--ink:#eceeff;--mute:#9ca1c6;--line:#2b2f50;--acc:#9a88ff;--on:#0e1020;--soft:#262a4d;--warn:#fcd34d;--wbg:#3a2e0b;--ok:#6ee7a0;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1020;--card:#171a30;--ink:#eceeff;--mute:#9ca1c6;--line:#2b2f50;--acc:#9a88ff;--on:#0e1020;--soft:#262a4d;--warn:#fcd34d;--wbg:#3a2e0b;--ok:#6ee7a0;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+.top,main{max-width:1100px;margin:0 auto;padding:16px}
+.top{display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:700;font-size:20px;display:flex;gap:10px;align-items:center}
+.mark{width:30px;height:30px;border-radius:9px;background:var(--acc);color:var(--on);display:grid;place-items:center;font-size:16px}
+main{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;align-items:start;padding-top:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(20,22,43,.06)}
+h1{font-size:26px;margin:0 16px 4px;max-width:1100px}h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--mute);margin:0 0 14px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tabs button,.ghost{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 14px;cursor:pointer;transition:background .15s,border-color .15s}
+.tabs button:hover,.ghost:hover{border-color:var(--acc)}
+.tabs button[aria-pressed=true]{background:var(--acc);color:var(--on);border-color:var(--acc)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fld{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--mute)}
+.full{grid-column:1/-1}
+.chk{flex-direction:row;align-items:center;gap:8px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%}
+input[type=color]{padding:2px;height:38px;cursor:pointer}input[type=checkbox],input[type=range]{width:auto;accent-color:var(--acc)}input[type=range]{width:100%}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.prev{position:static}
+@media (min-width:900px){.prev{position:sticky;top:16px}}
+@media (max-width:899px){main{grid-template-columns:1fr}}
+@media (max-width:520px){.grid{grid-template-columns:1fr}}
+#stage{min-height:300px;display:grid;place-items:center;border-radius:12px;background:repeating-conic-gradient(var(--soft) 0 25%,var(--card) 0 50%) 0 0/16px 16px;padding:10px;text-align:center}
+#qr canvas{max-width:100%;height:auto;border-radius:6px}
+#msg{color:var(--mute);margin:0;padding:16px}
+.warns{font-size:13px;margin:12px 0}.warns p{margin:6px 0;padding:8px 10px;border-radius:10px;background:var(--wbg);color:var(--warn)}.warns p.ok{background:var(--soft);color:var(--ok)}
+.btn{font:inherit;font-weight:600;border:0;border-radius:12px;padding:11px 14px;cursor:pointer;background:var(--acc);color:var(--on);width:100%;transition:opacity .15s}
+.btn:disabled{opacity:.45;cursor:not-allowed}.btn.alt{background:var(--soft);color:var(--ink)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}
+.note{color:var(--mute);font-size:12px;margin:10px 0 0}
+</style>
+</head>
+<body>
+<header class="top"><div class="logo"><span class="mark">▦</span>QR Studio</div><button id="theme" class="ghost" aria-label="Đổi giao diện sáng/tối">Sáng/Tối</button></header>
+<h1>Tạo mã QR theo cách của bạn</h1>
+<p class="sub" style="margin:0 16px 14px">Chọn loại nội dung, tùy chỉnh thiết kế và tải về. Mã QR tĩnh được tạo ngay trên trình duyệt của bạn.</p>
+<main>
+<section>
+ <div class="card"><h2>Loại mã QR</h2><div id="tabs" class="tabs"></div></div>
+ <div class="card"><h2>Nội dung</h2><div id="form" class="grid"></div></div>
+ <div class="card"><h2>Thiết kế</h2><div class="grid">
+  <label class="fld">Kiểu điểm<select data-k="dstyle"><option value="rounded">Bo tròn</option><option value="square">Vuông</option><option value="dots">Chấm</option><option value="classy">Classy</option><option value="classy-rounded">Classy bo tròn</option><option value="extra-rounded">Siêu tròn</option></select></label>
+  <label class="fld">Kiểu khung mắt<select data-k="estyle"><option value="extra-rounded">Siêu tròn</option><option value="square">Vuông</option><option value="dot">Tròn</option></select></label>
+  <label class="fld">Kiểu lõi mắt<select data-k="edot"><option value="dot">Tròn</option><option value="square">Vuông</option></select></label>
+  <label class="fld">Mức sửa lỗi<select data-k="ec"><option value="L">L – 7%</option><option value="M" selected>M – 15%</option><option value="Q">Q – 25%</option><option value="H">H – 30%</option></select></label>
+  <label class="fld">Màu điểm<input type="color" data-k="dot" value="#14162b"></label>
+  <label class="fld">Màu mắt<input type="color" data-k="eye" value="#5b4bf0"></label>
+  <label class="fld chk"><input type="checkbox" data-k="grad">Dùng gradient</label>
+  <label class="fld">Màu gradient thứ hai<input type="color" data-k="dot2" value="#5b4bf0"></label>
+  <label class="fld">Màu nền<input type="color" data-k="bg" value="#ffffff"></label>
+  <label class="fld chk"><input type="checkbox" data-k="trans">Nền trong suốt</label>
+  <label class="fld">Lề (margin)<input type="range" data-k="margin" data-n min="0" max="40" value="16"></label>
+  <label class="fld">Kích thước logo<input type="range" data-k="ls" data-n min="0.1" max="0.4" step="0.01" value="0.25"></label>
+  <label class="fld full">Logo ở giữa (PNG, JPG, WEBP, SVG – tối đa 2 MB)<input type="file" id="logo" accept="image/png,image/jpeg,image/webp,image/svg+xml"></label>
+  <button class="ghost" id="rmlogo" hidden>Xóa logo</button>
+ </div></div>
+</section>
+<aside class="prev"><div class="card">
+ <div id="stage"><div id="qr"></div><p id="msg"></p></div>
+ <div id="warns" class="warns" aria-live="polite"></div>
+ <div class="grid">
+  <label class="fld">Định dạng<select data-k="fmt"><option value="png">PNG</option><option value="jpeg">JPG</option><option value="webp">WEBP</option><option value="svg">SVG</option></select></label>
+  <label class="fld">Kích thước xuất<select data-k="size" data-n><option value="512">512 px</option><option value="1024" selected>1024 px</option><option value="2048">2048 px</option><option value="4096">4096 px</option></select></label>
+  <label class="fld full">Tên tệp<input data-k="name" value="qr-studio" maxlength="60"></label>
+ </div>
+ <div class="row" style="grid-template-columns:1fr"><button class="btn" id="dl">Tải xuống</button></div>
+ <div class="row"><button class="btn alt" id="cpi">Sao chép ảnh QR</button><button class="btn alt" id="cpt">Sao chép nội dung</button></div>
+ <p class="note">Hãy quét thử bằng điện thoại trước khi in hoặc chia sẻ.</p>
+</div></aside>
+</main>
+<div id="toast" role="status"></div>
+<script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+<script>
+const $=s=>document.querySelector(s),root=document.documentElement;
+const need=(x,m)=>{x=(x||'').trim();if(!x)throw Error(m);return x};
+const vc=x=>(x||'').replace(/([\\;,])/g,'\\$1').replace(/\r?\n/g,'\\n');
+const wf=x=>(x||'').replace(/([\\;,:"])/g,'\\$1');
+const dt=x=>x.replace(/[-:]/g,'')+'00';
+const mail=x=>{x=need(x,'Nhập địa chỉ email');if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x))throw Error('Email không hợp lệ');return x};
+const tel=x=>{x=need(x,'Nhập số điện thoại').replace(/[^\d+]/g,'');if(x.replace(/\D/g,'').length<3)throw Error('Số điện thoại không hợp lệ');return x};
+const web=x=>{x=need(x,'Nhập đường dẫn website');let u;try{u=new URL(x.includes('://')?x:'https://'+x)}catch(e){throw Error('Đường dẫn không hợp lệ')}if(!/^https?:$/.test(u.protocol))throw Error('Chỉ hỗ trợ đường dẫn http hoặc https');return u.href};
+const T={
+ text:{n:'Văn bản',f:[{k:'t',l:'Nội dung',m:1,w:1,ph:'Nhập văn bản (hỗ trợ tiếng Việt, nhiều dòng)'}],b:v=>{if(!(v.t||'').trim())throw Error('Nhập văn bản để tạo mã QR');return v.t}},
+ url:{n:'Website',f:[{k:'u',l:'Đường dẫn',w:1,ph:'https://example.com'}],b:v=>web(v.u)},
+ wifi:{n:'WiFi',f:[{k:'s',l:'Tên mạng (SSID)'},{k:'p',l:'Mật khẩu',t:'text'},{k:'e',l:'Bảo mật',o:[['WPA','WPA/WPA2/WPA3'],['WEP','WEP'],['nopass','Không mật khẩu']]},{k:'h',l:'Mạng ẩn',t:'checkbox'}],
+  b:v=>{need(v.s,'Nhập tên mạng WiFi');if(v.e!=='nopass')need(v.p,'Nhập mật khẩu WiFi');return `WIFI:T:${v.e};S:${wf(v.s)};${v.e==='nopass'?'':'P:'+wf(v.p)+';'}${v.h?'H:true;':''};`}},
+ vcard:{n:'Danh thiếp',f:[{k:'n',l:'Họ tên'},{k:'p',l:'Điện thoại',t:'tel'},{k:'e',l:'Email',t:'email'},{k:'o',l:'Công ty'},{k:'t',l:'Chức vụ'},{k:'u',l:'Website'},{k:'a',l:'Địa chỉ',w:1}],
+  b:v=>{need(v.n,'Nhập họ tên');if(v.e)mail(v.e);return['BEGIN:VCARD','VERSION:3.0',`N:;${vc(v.n)};;;`,`FN:${vc(v.n)}`,v.p&&`TEL;TYPE=CELL:${vc(v.p)}`,v.e&&`EMAIL:${vc(v.e)}`,v.o&&`ORG:${vc(v.o)}`,v.t&&`TITLE:${vc(v.t)}`,v.u&&`URL:${vc(v.u)}`,v.a&&`ADR:;;${vc(v.a)};;;;`,'END:VCARD'].filter(Boolean).join('\n')}},
+ email:{n:'Email',f:[{k:'a',l:'Địa chỉ email',w:1,t:'email'},{k:'s',l:'Tiêu đề',w:1},{k:'b',l:'Nội dung',m:1,w:1}],
+  b:v=>{const a=mail(v.a),q=[v.s&&'subject='+encodeURIComponent(v.s),v.b&&'body='+encodeURIComponent(v.b)].filter(Boolean).join('&');return 'mailto:'+a+(q?'?'+q:'')}},
+ phone:{n:'Điện thoại',f:[{k:'p',l:'Số điện thoại',w:1,t:'tel'}],b:v=>'tel:'+tel(v.p)},
+ sms:{n:'SMS',f:[{k:'p',l:'Số điện thoại',w:1,t:'tel'},{k:'m',l:'Nội dung tin nhắn',m:1,w:1}],b:v=>'sms:'+tel(v.p)+(v.m?'?body='+encodeURIComponent(v.m):'')},
+ geo:{n:'Vị trí',f:[{k:'la',l:'Vĩ độ',ph:'21.0285'},{k:'lo',l:'Kinh độ',ph:'105.8542'},{k:'ad',l:'Hoặc nhập địa chỉ',w:1}],
+  b:v=>{if((v.la||'').trim()||(v.lo||'').trim()){const a=+v.la,o=+v.lo;if(!v.la.trim()||!v.lo.trim()||isNaN(a)||isNaN(o)||Math.abs(a)>90||Math.abs(o)>180)throw Error('Tọa độ không hợp lệ (vĩ độ −90..90, kinh độ −180..180)');return `geo:${a},${o}`}
+   return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(need(v.ad,'Nhập tọa độ hoặc địa chỉ'))}},
+ event:{n:'Sự kiện',f:[{k:'n',l:'Tên sự kiện',w:1},{k:'l',l:'Địa điểm',w:1},{k:'s',l:'Bắt đầu',t:'datetime-local'},{k:'e',l:'Kết thúc',t:'datetime-local'},{k:'d',l:'Mô tả',m:1,w:1},{k:'u',l:'Website sự kiện',w:1}],
+  b:v=>{need(v.n,'Nhập tên sự kiện');need(v.s,'Chọn thời gian bắt đầu');if(v.e&&v.e<v.s)throw Error('Thời gian kết thúc phải sau thời gian bắt đầu');
+   return['BEGIN:VCALENDAR','VERSION:2.0','BEGIN:VEVENT',`SUMMARY:${vc(v.n)}`,v.l&&`LOCATION:${vc(v.l)}`,`DTSTART:${dt(v.s)}`,v.e&&`DTEND:${dt(v.e)}`,v.d&&`DESCRIPTION:${vc(v.d)}`,v.u&&`URL:${vc(v.u)}`,'END:VEVENT','END:VCALENDAR'].filter(Boolean).join('\n')}}
+};
+let type='text',cur=null;const V={};Object.keys(T).forEach(k=>V[k]={});
+const D={logo:null};
+const val=e=>e.type==='checkbox'?e.checked:e.hasAttribute('data-n')?+e.value:e.value;
+document.querySelectorAll('[data-k]').forEach(e=>{D[e.dataset.k]=val(e);e.addEventListener('input',()=>{D[e.dataset.k]=val(e);render()})});
+function opts(size,data,bg){const sc=size/280,o={width:size,height:size,type:'canvas',data,margin:Math.round(D.margin*sc),qrOptions:{errorCorrectionLevel:D.ec},
+ dotsOptions:D.grad?{type:D.dstyle,gradient:{type:'linear',rotation:Math.PI/4,colorStops:[{offset:0,color:D.dot},{offset:1,color:D.dot2}]}}:{type:D.dstyle,color:D.dot},
+ cornersSquareOptions:{type:D.estyle,color:D.eye},cornersDotOptions:{type:D.edot,color:D.eye},backgroundOptions:{color:bg||(D.trans?'rgba(0,0,0,0)':D.bg)}};
+ if(D.logo){o.image=D.logo;o.imageOptions={hideBackgroundDots:true,imageSize:D.ls,margin:Math.round(4*sc)}}return o}
+const lum=h=>{const c=[1,3,5].map(i=>{const v=parseInt(h.substr(i,2),16)/255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)});return .2126*c[0]+.7152*c[1]+.0722*c[2]};
+const ratio=(a,b)=>{const x=lum(a),y=lum(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+function warn(){const w=[],box=$('#warns');box.replaceChildren();if(cur){
+ if(D.trans)w.push('Nền trong suốt: hãy đặt mã lên nền sáng, đủ tương phản với màu điểm.');
+ else{const cs=[D.dot,D.eye].concat(D.grad?[D.dot2]:[]),r=Math.min(...cs.map(c=>ratio(c,D.bg)));
+  if(cs.some(c=>lum(c)>lum(D.bg)))w.push('Có màu sáng hơn nền (mã đảo màu). Nhiều ứng dụng quét không đọc được kiểu này.');
+  else if(r<3)w.push('Độ tương phản thấp ('+r.toFixed(1)+':1). Nên đạt tối thiểu 3:1 để quét ổn định.')}
+ if(D.logo&&(D.ls>.3||'LM'.includes(D.ec)))w.push('Logo che một phần mã: dùng mức sửa lỗi H và giữ kích thước logo dưới 30%.');
+ if(!w.length)w.push('Không phát hiện vấn đề về độ tương phản hay logo.')}
+ w.forEach((t,i)=>{const p=document.createElement('p');p.textContent=t;if(cur&&!(i===0&&t.startsWith('Không phát hiện')))p.className='';else p.className='ok';box.append(p)})}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2200)}
+function render(){const box=$('#qr'),m=$('#msg');box.replaceChildren();cur=null;let msg='';
+ try{const d=T[type].b(V[type]);if(typeof QRCodeStyling==='undefined')throw Error('Không tải được thư viện tạo mã QR. Hãy kiểm tra kết nối mạng và tải lại trang.');
+  new QRCodeStyling(opts(280,d)).append(box);cur=d}
+ catch(e){msg=/overflow|length/i.test(e.message)?'Nội dung quá dài để tạo mã QR. Hãy rút gọn nội dung hoặc chọn mức sửa lỗi thấp hơn.':e.message;box.replaceChildren()}
+ m.textContent=msg;m.hidden=!msg;['#dl','#cpi','#cpt'].forEach(s=>$(s).disabled=!cur);warn()}
+function form(){const f=$('#form'),v=V[type];f.replaceChildren();T[type].f.forEach(x=>{
+ const w=document.createElement('label'),s=document.createElement('span');w.className='fld'+(x.w?' full':'');s.textContent=x.l;let i;
+ if(x.m){i=document.createElement('textarea');i.rows=4}else if(x.o){i=document.createElement('select');x.o.forEach(([a,b])=>i.add(new Option(b,a)))}else{i=document.createElement('input');i.type=x.t||'text'}
+ if(x.ph)i.placeholder=x.ph;
+ if(x.t==='checkbox'){i.checked=!!v[x.k];w.className+=' chk';w.append(i,s)}else{if(v[x.k]!==undefined)i.value=v[x.k];else v[x.k]=i.value;w.append(s,i)}
+ i.addEventListener('input',()=>{v[x.k]=x.t==='checkbox'?i.checked:i.value;render()});f.append(w)})}
+const tabs=$('#tabs');Object.entries(T).forEach(([k,t])=>{const b=document.createElement('button');b.textContent=t.n;b.dataset.t=k;b.onclick=()=>{type=k;tabs.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.t===k));form();render()};tabs.append(b)});
+tabs.firstChild.setAttribute('aria-pressed','true');
+$('#logo').onchange=e=>{const f=e.target.files[0];if(!f)return;if(f.size>2*1024*1024){toast('Logo quá lớn (tối đa 2 MB)');e.target.value='';return}
+ const r=new FileReader();r.onload=()=>{D.logo=r.result;D.ec='H';$('[data-k=ec]').value='H';$('#rmlogo').hidden=false;render()};r.onerror=()=>toast('Không đọc được tệp logo');r.readAsDataURL(f)};
+$('#rmlogo').onclick=()=>{D.logo=null;$('#logo').value='';$('#rmlogo').hidden=true;render()};
+const safe=()=>(D.name||'qr-studio').trim().replace(/[^\w\-]+/g,'_')||'qr-studio';
+$('#dl').onclick=async()=>{if(!cur)return;try{const o=opts(D.size,cur,D.fmt==='jpeg'&&D.trans?'#ffffff':null);o.type=D.fmt==='svg'?'svg':'canvas';await new QRCodeStyling(o).download({name:safe(),extension:D.fmt});toast('Đã tải xuống')}catch(e){toast('Không thể xuất tệp. Hãy thử kích thước nhỏ hơn.')}};
+$('#cpi').onclick=async()=>{if(!cur)return;try{const p=new QRCodeStyling(opts(512,cur)).getRawData('png');await navigator.clipboard.write([new ClipboardItem({'image/png':p})]);toast('Đã sao chép ảnh QR')}catch(e){toast('Trình duyệt không cho phép sao chép ảnh. Hãy dùng nút Tải xuống.')}};
+$('#cpt').onclick=async()=>{if(!cur)return;try{await navigator.clipboard.writeText(cur);toast('Đã sao chép nội dung')}catch(e){toast('Không thể sao chép nội dung')}};
+const dark=()=>root.dataset.theme?root.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+$('#theme').onclick=()=>{root.dataset.theme=dark()?'light':'dark'};
+form();render();
+</script>
+</body>
+</html>
